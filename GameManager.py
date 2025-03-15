@@ -26,8 +26,6 @@ def Setup():
     clear()
     print(Visuals.tituloText)
     print(Visuals.barcoText)
-
-
     #    Preparamos las tablas de cada jugador
     print("Bienvenido al simulador de Batalla Naval realista.")
     nombreI = input("Para iniciarte escribe tu nombre, grumete: ")
@@ -38,6 +36,9 @@ def Setup():
 mode = { 1: "Manual", 2 : "Random", 3: "Static" }
 
 def menu_partida_rapida():
+    clear()
+    print(Visuals.tituloText)
+    print(Visuals.barcoText)
     print("En estas simulaciones realistas podrás ponerte a prueba para ganar experiencia:\n\
 Escoge una modalidad para desplegar tu flota de combate:\n\
           1.Manual (Escoge la posición inicial de tu flota. Sólo para almirantes de verdad)\n\
@@ -48,18 +49,32 @@ Escoge una modalidad para desplegar tu flota de combate:\n\
     clear()
     if(opcion.isdigit()):
         if(0 < int(opcion) < 4):
-            iniciar_Partida_Rapida(int(opcion))                    
+            iniciar_Partida_Rapida(int(opcion))                           
     else:
         print("Opción inválida")
+
+
+def coords_to_index(coord: str):       
+        digits, chars = chars_and_nums(coord)
+        x = digits - 1
+        y = ord(chars.upper()) - 65
+        return x, y
 
 
 def iniciar_Partida_Rapida(nmodo):   
     nmodo = int(nmodo) 
     if( nmodo in mode.keys()):
-        jugador_Humano.setup_jugador(mode[nmodo])        
-        global maxR 
+        if(nmodo != 1):
+            jugador_Humano.setup_jugador(mode[nmodo])        
+        else:
+            jugador_Humano.tablero_propio.setupBoard()
+            setup_manual()
+            pass        
+        global maxR         
         maxR = jugador_Humano.tablero_propio.altura - 1
-        jugador_Maquina.setup_jugador(mode[nmodo])
+        global turnoJugador
+        turnoJugador = True
+        jugador_Maquina.setup_jugador()
         jugador_Humano.resetRadar()
         global isInGame
         isInGame = True
@@ -70,8 +85,31 @@ def iniciar_Partida_Rapida(nmodo):
     
     pass
 
+def setup_manual():
+        barcos_por_size = jugador_Humano.tablero_propio.barcos_por_size
+
+        for size, cantidad in barcos_por_size.items():
+            for _ in range(cantidad):
+                valid_input = False
+                while not valid_input:
+                    coord_input = input(f"Introduce la coordenada inicial para el barco de tamaño {size} (ej: 4A): ")
+                    direction_input = input("Introduce la dirección (N, S, E, O): ").upper()
+
+                    x, y = coords_to_index(coord_input)                    
+                    if jugador_Humano.tablero_propio.canPlaceShip(x, y, size, direction_input):
+                        jugador_Humano.tablero_propio.setupShipManually(size, (y, x), direction_input)
+                        valid_input = True
+                        clear()                        
+                        print(jugador_Humano.tablero_propio.tablero)
+                        battleMap.imprimirTablero(jugador_Humano.tablero_propio, jugador_Humano.nombre)
+                    else:
+                        print(f"Posición o dirección inválida para el barco de tamaño {size}. Inténtalo de nuevo.")
+
        
 def escoge_Modo_De_Juego():
+    clear()
+    print(Visuals.tituloText)
+    print(Visuals.barcoText)
     print("Escoge una opción (número): \n\
         1.Tutorial\n\
         2.Práctica Rápida\n\
@@ -143,14 +181,20 @@ def PerformAction(jugadorAtacante : Player, jugadorDefensor : Player, coordenada
     
     print(f"El jugador {jugadorAtacante.nombre} ha disparado a: {coordenadas}")    
     tocado = jugadorDefensor.tablero_propio.tocado(coordenadas[0], coordenadas[1])    
-    ##Implementación Torpedo
-    ##torpedoCharged = False
-    if(tocado):                            
-        print("TOCADO")
-    else:
-        print("AGUA")
+    
     jugadorDefensor.tablero_propio.putMarca(coordenadas[0], coordenadas[1], tocado)  
     jugadorAtacante.tablero_rival.putMarca(coordenadas[0], coordenadas[1], tocado)
+
+    if(tocado):                            
+        print("TOCADO")
+        if(jugadorAtacante.torpedoCharged):
+            jugadorDefensor.tablero_propio.destroy_all_ships()
+            jugadorAtacante.torpedoCharged = False
+        if(jugadorDefensor.tablero_propio.verificar_hundido(coordenadas[0], coordenadas[1])):
+            print("Hundido")
+    else:
+        print("AGUA")
+    
 
     UpdateBattleMap()
     return tocado
@@ -172,6 +216,15 @@ def chars_and_nums(text):
         
     return int(''.join(map(str, digits))), str(''.join(chars))    
 
+def coords_to_index(coord: str):
+    """
+    Convierte una coordenada tipo "4A" a índices del tablero.
+    """
+    digits, chars = chars_and_nums(coord)
+    x = digits - 1
+    y = ord(chars.upper()) - 65
+    return x, y
+
 def coord0_inRange(coord : int):    
     if(coord < 0 or coord > maxR):
         return False
@@ -181,8 +234,8 @@ def coord0_inRange(coord : int):
 def activar_radar():
     if(jugador_Humano.usosRadar > 0):
         clear()
-        battleMap.imprimirTablero(jugador_Maquina.tablero_propio, jugador_Maquina.nombre)
-        battleMap.imprimirTablero(jugador_Humano.tablero_rival, jugador_Maquina.nombre)
+        battleMap.imprimirTablero(jugador_Humano.tablero_propio, jugador_Humano.nombre)
+        battleMap.imprimirTablero(jugador_Maquina.tablero_propio, jugador_Maquina.nombre, True)        
         jugador_Humano.decreaseRadar()
         print("Usos de radar restantes: ", jugador_Humano.usosRadar)
     else:
@@ -204,11 +257,13 @@ def check_if_comando(text):
             return True 
         case "t":
             #print("Cargar Torpedo")            
+            print("Entra aquí")
             jugador_Humano.decreaseTorpedo()
+            print("Usos Torpedo", jugador_Humano.usosTorpedo, jugador_Humano.torpedoCharged)
             return True
         case "q":
             global isInGame
-            isInGame = False
+            isInGame = False            
             return True
             #Salir            
         case _:
@@ -269,13 +324,15 @@ def HandleGame():
     else:
         ##Añadir quien gana
         if(isInGame != False):
-            if(whoWIn):
+            clear()
+            if(whoWIn):                
                 print(Visuals.winText)
 
             else:
                 print(Visuals.loseText)   
         else:
             print("Saliste") 
+            clear()
         isInGame = False
     pass
 
@@ -290,6 +347,4 @@ def HandleUpdate():
         enBucle = escoge_Modo_De_Juego()
       
     pass
-
-#HandleUpdate()
-    
+   

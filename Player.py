@@ -7,7 +7,7 @@ class Player:
     CONST_RADAR_USES = 3
     usosRadar = 0
     CONST_TORPEDO_USES = 5
-    torpedoCharged = True
+    torpedoCharged = False
     usosTorpedo = 0
 
     def __init__(self, nombre = "", esHumano = False, tablero_Propio = None, tablero_Rival = None):
@@ -39,6 +39,7 @@ class Player:
         self.tablero_rival.setupBoard(size, size)
         pass
     def setup_jugador(self, mode : str = "Random", size:int = 10):
+        self.usosTorpedo = 5
         self.setup_table(mode, size)
         self.setup_rival_table(size)
         pass
