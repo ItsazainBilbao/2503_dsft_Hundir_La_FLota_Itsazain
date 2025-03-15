@@ -1,0 +1,3 @@
+from GameManager import *
+
+HandleUpdate()
