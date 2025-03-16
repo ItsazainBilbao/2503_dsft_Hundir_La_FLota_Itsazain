@@ -1,0 +1,32 @@
+{
+    "Juan": {
+        "rango": "Capit\u00e1n",
+        "partidas_ganadas": 32,
+        "partidas_perdidas": 5
+    },
+    "Pepe": {
+        "rango": "Teniente",
+        "partidas_ganadas": 15,
+        "partidas_perdidas": 3
+    },
+    "Dolores": {
+        "rango": "Grumete",
+        "partidas_ganadas": 8,
+        "partidas_perdidas": 2
+    },
+    "Antonio": {
+        "rango": "Almirante",
+        "partidas_ganadas": 60,
+        "partidas_perdidas": 0
+    },
+    "Esperanza": {
+        "rango": "Teniente",
+        "partidas_ganadas": 12,
+        "partidas_perdidas": 0
+    },
+    "DOlores": {
+        "rango": "Grumete",
+        "partidas_ganadas": 0,
+        "partidas_perdidas": 0
+    }
+}
