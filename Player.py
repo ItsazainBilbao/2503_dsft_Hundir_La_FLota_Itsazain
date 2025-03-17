@@ -28,7 +28,7 @@ class Player:
             self.tablero_rival = Board()
     #depende de las victorias te asigan un rango
     def set_rango(self, num_partidas_ganadas):
-        if(num_partidas_ganadas < 10):            
+        if(num_partidas_ganadas < 3):            
             rango = "Grumete"
         elif(num_partidas_ganadas < 20):
             rango = "Teniente"

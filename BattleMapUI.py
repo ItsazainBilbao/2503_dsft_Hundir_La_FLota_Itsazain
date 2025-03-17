@@ -31,7 +31,7 @@ class BattleMapUI:
                     
         #Añade las columnas de la primera fila
         for i in range(len(tablilla)):     
-            table.add_column( str(i+1), style="blue", justify= "center",  max_width=1, min_width=1)
+            table.add_column( str(i+1), style="blue", justify= "center",  max_width=2, min_width=2)
         #Añade la columna final 
         table.add_column("")
         #Añade el valor de cada fila de toda la tabla como fila a la tabla del rich
